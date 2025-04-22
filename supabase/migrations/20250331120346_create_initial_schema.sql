@@ -1,38 +1,54 @@
--- プロフィールテーブル
-create table public.profiles (
-  id uuid references auth.users on delete cascade not null primary key,
-  name text,
-  role text check (role in ('admin', 'user')) default 'user',
-  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
-  updated_at timestamp with time zone default timezone('utc'::text, now()) not null
+-- ロール用ENUM型の作成
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'user_role') THEN
+    CREATE TYPE public.user_role AS ENUM ('一般', '管理者', 'システム管理者');
+  END IF;
+END
+$$;
+
+-- ユーザーテーブル作成
+CREATE TABLE IF NOT EXISTS public.users (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  last_name TEXT NOT NULL,
+  first_name TEXT NOT NULL,
+  role public.user_role NOT NULL DEFAULT '一般',
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
 );
 
--- 出社記録テーブル
-create table public.office_visits (
-  id uuid default uuid_generate_v4() primary key,
-  user_id uuid references public.profiles on delete cascade not null,
-  visit_date date not null,
-  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
-  updated_at timestamp with time zone default timezone('utc'::text, now()) not null
+-- オフィス訪問テーブル作成
+CREATE TABLE IF NOT EXISTS public.office_visits (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+  visit_date DATE NOT NULL,
+  is_visited_this_month BOOLEAN DEFAULT false,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
 );
 
--- セキュリティ設定
-alter table public.profiles enable row level security;
-alter table public.office_visits enable row level security;
+-- RLSの設定
+ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.office_visits ENABLE ROW LEVEL SECURITY;
 
--- RLSポリシー
-create policy "Users can view their own profile" 
-  on public.profiles for select 
-  using ( auth.uid() = id );
+-- ユーザーポリシー設定
+DROP POLICY IF EXISTS "ユーザーは全員閲覧可能" ON public.users;
+CREATE POLICY "ユーザーは全員閲覧可能" ON public.users
+  FOR SELECT USING (true);
 
-create policy "Users can insert and update their own profile"
-  on public.profiles for insert
-  with check ( auth.uid() = id );
+DROP POLICY IF EXISTS "管理者はユーザー情報を管理可能" ON public.users;
+CREATE POLICY "管理者はユーザー情報を管理可能" ON public.users
+  FOR ALL USING (auth.jwt() ? 'role' IN ('管理者', 'システム管理者'));
 
-create policy "Users can view all office visits"
-  on public.office_visits for select
-  to authenticated;
+-- オフィス訪問ポリシー設定
+DROP POLICY IF EXISTS "オフィス訪問は全員閲覧可能" ON public.office_visits;
+CREATE POLICY "オフィス訪問は全員閲覧可能" ON public.office_visits
+  FOR SELECT USING (true);
 
-create policy "Users can insert their own visits"
-  on public.office_visits for insert
-  with check ( auth.uid() = user_id );
+DROP POLICY IF EXISTS "自分の訪問記録のみ編集可能" ON public.office_visits;
+CREATE POLICY "自分の訪問記録のみ編集可能" ON public.office_visits
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "管理者は全ての訪問記録を管理可能" ON public.office_visits;
+CREATE POLICY "管理者は全ての訪問記録を管理可能" ON public.office_visits
+  FOR ALL USING (auth.jwt() ? 'role' IN ('管理者', 'システム管理者'));
