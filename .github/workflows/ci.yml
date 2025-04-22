@@ -19,8 +19,11 @@ jobs:
           node-version: "20.11.1"
           cache: "npm"
 
-      - name: Install dependencies
+      - name: Install dependencies (root)
         run: npm ci
+
+      - name: Install dependencies (backend)
+        run: cd backend && npm ci
 
       - name: Type check
         run: npm run type-check
