@@ -1,0 +1,36 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "migrate": "node scripts/migrate.ts",
+    "migrate:local": "cross-env NODE_ENV=local ts-node scripts/migrate.ts",
+    "migrate:develop": "cross-env NODE_ENV=develop ts-node scripts/migrate.ts",
+    "migrate:production": "cross-env NODE_ENV=production ts-node scripts/migrate.ts",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:local": "cross-env NODE_ENV=local jest",
+    "test:develop": "cross-env NODE_ENV=develop jest"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@jest/globals": "^29.7.0",
+    "@types/jest": "^29.5.14",
+    "@types/node": "^22.14.1",
+    "@types/uuid": "^10.0.0",
+    "cross-env": "^7.0.3",
+    "dotenv": "^16.5.0",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.3.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3",
+    "uuid": "^11.1.0"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.49.4"
+  }
+}

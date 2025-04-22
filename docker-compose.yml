@@ -1,0 +1,47 @@
+# versionは不要なので削除
+
+services:
+  db:
+    image: postgres:15
+    ports:
+      - "54322:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-postgres}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  studio:
+    image: supabase/studio:latest
+    ports:
+      - "54323:3000"
+    depends_on:
+      - db
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      SUPABASE_URL: http://rest:3000
+      STUDIO_PG_META_URL: http://meta:8080
+      PG_META_PORT: 8080
+      PG_META_DB_HOST: db
+      PG_META_DB_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      PG_META_DB_PORT: 5432
+      PG_META_DB_NAME: postgres
+      PG_META_DB_USER: ${POSTGRES_USER:-postgres}
+
+  # APIサーバー
+  rest:
+    image: postgrest/postgrest:latest
+    ports:
+      - "54321:3000"
+    depends_on:
+      - db
+    environment:
+      PGRST_DB_URI: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-postgres}
+      PGRST_DB_SCHEMA: public
+      PGRST_DB_ANON_ROLE: anon
+      PGRST_JWT_SECRET: "super-secret-jwt-token-with-at-least-32-characters-long"
+      PGRST_DB_SCHEMAS: "public"
+
+volumes:
+  postgres_data:
