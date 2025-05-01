@@ -13,7 +13,6 @@
     "build:client": "cd client && npm run build",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
     "format": "prettier --write .",
-    "//": "TODO:テストコード整備次第、type-checkを実行する",
     "type-check": "cd server && tsc --noEmit --skipLibCheck"
   },
   "dependencies": {
