@@ -28,6 +28,9 @@ jobs:
           npm install @nestjs/common @nestjs/core @nestjs/config @nestjs/platform-express dotenv
           npm install --save-dev @types/node typescript
 
+      - name: Install dependencies (backend)
+        run: cd backend && npm ci
+
       - name: Type check
         run: npm run type-check
 
