@@ -3,11 +3,17 @@ name: CI
 on:
   push:
     branches: [main]
-  pull_request:
-    branches: [main]
+    # 重要: CIファイル自体が変更された場合は実行しない
+    paths-ignore:
+      - ".github/workflows/**"
 
 jobs:
   build:
+    # 重要: 同時実行を制限
+    concurrency:
+      group: ci-${{ github.ref }}
+      cancel-in-progress: true
+
     runs-on: ubuntu-latest
 
     steps:
