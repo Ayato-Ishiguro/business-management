@@ -3,11 +3,17 @@ name: CI
 on:
   push:
     branches: [main]
-  pull_request:
-    branches: [main]
+    # 重要: CIファイル自体が変更された場合は実行しない
+    paths-ignore:
+      - ".github/workflows/**"
 
 jobs:
   build:
+    # 重要: 同時実行を制限
+    concurrency:
+      group: ci-${{ github.ref }}
+      cancel-in-progress: true
+
     runs-on: ubuntu-latest
 
     steps:
@@ -19,8 +25,14 @@ jobs:
           node-version: "20.11.1"
           cache: "npm"
 
-      - name: Install dependencies (root)
-        run: npm ci
+      - name: Install root dependencies
+        run: npm install
+
+      - name: Install server dependencies
+        run: |
+          cd server
+          npm install @nestjs/common @nestjs/core @nestjs/config @nestjs/platform-express dotenv
+          npm install --save-dev @types/node typescript
 
       - name: Install dependencies (backend)
         run: cd backend && npm ci
