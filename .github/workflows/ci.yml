@@ -19,8 +19,11 @@ jobs:
           node-version: "20.11.1"
           cache: "npm"
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Install server dependencies
+        run: |
+          cd server
+          npm install @nestjs/common @nestjs/core @nestjs/config @nestjs/platform-express dotenv
+          npm install --save-dev @types/node typescript
 
       - name: Type check
         run: npm run type-check
