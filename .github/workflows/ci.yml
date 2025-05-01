@@ -19,6 +19,9 @@ jobs:
           node-version: "20.11.1"
           cache: "npm"
 
+      - name: Install root dependencies
+        run: npm install
+
       - name: Install server dependencies
         run: |
           cd server
