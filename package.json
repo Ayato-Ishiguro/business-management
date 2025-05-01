@@ -13,7 +13,7 @@
     "build:client": "cd client && npm run build",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
     "format": "prettier --write .",
-    "type-check": "cd server && tsc --noEmit && cd ../client && tsc --noEmit"
+    "type-check": "cd server && tsc --noEmit && cd client && tsc --noEmit"
   },
   "dependencies": {
     "@prisma/client": "^6.5.0",
